@@ -1,35 +1,20 @@
 # Roadmap
 
-Version labels are intentions, not shipped promises.
+## v0.1 — released 2026-10-08
+- [x] Markdown project scaffold, checkpoints, resume, local Git history and explicit sync.
+- [x] Python CLI, synthetic demo, pytest, GitHub Actions on Python 3.10–3.13.
 
-## v0.1 — Implemented locally
-- [x] Python CLI (stdlib, Python 3.10+).
-- [x] Markdown project templates and project index.
-- [x] Explicit manual checkpoints, append-only logs and resume output.
-- [x] Basic validation, secret heuristics, local state SHA precondition.
-- [x] Selective Git commits and guarded explicit Git push.
-- [x] Synthetic demo, local tests, CI workflow configuration.
-- [ ] Live GitHub hosted CI and remote-push verification (until first successful published run).
+## v0.2 — source implementation (2026-10-10)
+- [x] Optional Drive v3 API integration with desktop OAuth using scoped `drive.file`.
+- [x] Explicit Drive folder setup, Markdown push/pull, SHA-256 baseline conflict refusals and dry run.
+- [x] Offline fake Drive API tests for upload, restore, divergence and duplicate safety.
+- [ ] Real-account OAuth acceptance test (user must connect their Google Cloud OAuth app).
+- [ ] Concurrency-safe write preconditions / transactions; current conflict detection is best effort.
 
-## v0.2 — Hardening
-- [ ] Atomic multi-document checkpoint transaction / rollback strategy.
-- [ ] Robust multi-writer conflict detection and reconciliation UI/CLI.
-- [ ] Versioned context schema/migrations and expanded document integrity rules.
-- [ ] Full packaging/install smoke tests across supported OSes.
-- [ ] Coverage metrics and dedicated security tests.
+## Later
+- [ ] Provider abstraction with more robust transactional semantics and native GitHub API support.
+- [ ] Google Picker/native Docs integration if needed and appropriate scopes/verification.
+- [ ] Better automated context extraction with human review, cross-provider reconciliation.
+- [ ] Optional MCP interface, UI, semantic retrieval and schema migration.
 
-## v0.3 — Storage interface
-- [ ] Provider abstraction and explicit source-of-truth configuration.
-- [ ] Native GitHub API adapter (optional) and richer revision handling.
-- [ ] Google Drive adapter tested end-to-end, least-privilege OAuth.
-- [ ] Optional snapshot/export/import workflow.
-
-## Beyond
-- [ ] MCP server, only after access control and write-approval design.
-- [ ] Browser/desktop workflow; semantic search with explicit opt-in.
-- [ ] Optional AI-assisted extraction with provenance and review.
-- [ ] Conflict-safe cross-provider migration (not automatic bidirectional sync).
-
-## Non-goals
-
-No claims of full chat-memory recovery, autonomous AI agent, guaranteed truth, enterprise security or automatic cloud sync without implementation and tests.
+No feature is considered production-ready solely because it is in the roadmap.

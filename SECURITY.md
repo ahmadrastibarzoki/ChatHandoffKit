@@ -20,3 +20,10 @@ For sensitive issues, do not open a public issue containing an exploit with secr
 ## Threat model limitations
 
 This release does not implement encryption at rest, permissions management, granular content policy, comprehensive secret scanning, or transactional multi-file rollback. The optional SHA-256 state precondition avoids *some* stale edits but is not an interprocess lock. Never promise secure multi-writer synchronization.
+
+## Google Drive OAuth (v0.2)
+- Use your own Google Cloud **Desktop OAuth client**; never commit the client JSON or refresh token.
+- `drive.file` is the only scope requested; no blanket access to Google Drive.
+- Access tokens/refresh tokens are saved in a local config directory, and `.chathandoff/` is ignored by Git.
+- Review the Markdown workspace before pushing; a private Drive folder is not a password manager.
+- SHA-256 baselines detect common conflicting edits but not an atomic write race during a multi-file transfer.

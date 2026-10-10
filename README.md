@@ -6,7 +6,7 @@
 
 ChatHandoffKit is an **early-stage, local-first open-source CLI** for documenting, checkpointing, versioning, and resuming long-running AI-assisted projects. It saves portable Markdown files outside your chat history and can publish reviewed checkpoints through a **user-configured Git remote** (including GitHub).
 
-> **Honest scope:** v0.1 provides a tested local CLI and Git workflow. It does **not** extract chat histories automatically, include a Google Drive adapter, create GitHub repositories, guarantee full context recovery, or offer hosted AI memory. Planned features are labeled below.
+> **Honest scope:** v0.2 introduces an optional Google Drive API adapter with desktop OAuth and explicit Markdown push/pull. Its Drive operations are tested against an offline fake API; **live Google OAuth/Drive acceptance is pending user setup**. It does **not** extract chat histories automatically, create GitHub repositories, guarantee full context recovery, or offer hosted AI memory.
 
 ## Why?
 
@@ -24,7 +24,7 @@ Long conversations can become difficult to navigate. A fresh AI chat may not hav
 | Structure / basic secret checks | **Implemented, locally tested** | Heuristic only, not a security guarantee |
 | Git commits + explicit push | **Implemented, tested against local bare Git remote** | Use your own configured GitHub remote and credentials |
 | GitHub-specific API adapter | **Not implemented** | Standard Git transport is supported instead |
-| Google Drive storage adapter | **Planned** | No Google Docs native integration yet |
+| Google Drive Markdown adapter | **Implemented; offline API tests passed; live OAuth pending** | Optional desktop OAuth, app-owned folders, explicit push/pull, optimistic hash baseline |
 | Automated extraction of entire chats | **Not implemented** | Assistant/user must provide verified facts |
 | MCP / visual UI / semantic search | **Planned** | Not advertised as working |
 
@@ -76,6 +76,24 @@ If earlier commands already committed those files, you do not need a second init
 
 See [GitHub setup](docs/github-setup.md) and the [offline demo](docs/workflow.md).
 
+## Google Drive (v0.2 experimental)
+
+Install optional dependencies and follow the [Drive setup and safety guide](docs/google-drive-setup.md).
+
+```bash
+python -m pip install -e '.[drive]'
+# Enable Drive API in your own Google Cloud project; create an OAuth Desktop client.
+# Download its client JSON OUTSIDE the repository (never commit it).
+chathandoff drive auth --client-secrets /private/path/desktop-oauth-client.json
+chathandoff drive init --root my-memory
+chathandoff drive push --root my-memory --dry-run
+chathandoff drive push --root my-memory
+```
+
+The app requests the per-file `drive.file` scope. The default token resides in your user config directory, not the project repository. A local `.chathandoff/drive.json` stores the remote folder ID and last-transfer SHA-256 baselines and is ignored by Git. The tool never deletes remote files; it refuses divergent content and does not merge concurrent edits. The v0.2 adapter uses **plain Markdown Drive files, not native Google Docs**. For a second machine, create an empty directory and connect to the app-visible folder ID before running `drive pull`. Never publish OAuth client JSON, refresh tokens or your actual memory files.
+
+> **Verification:** CI checks fake-Drive API lifecycle and conflict handling; it does not log into a real Google account. This must be tried with your own OAuth desktop client before calling it a production-tested integration.
+
 ## Core commands
 
 | Command | Purpose |
@@ -87,6 +105,7 @@ See [GitHub setup](docs/github-setup.md) and the [offline demo](docs/workflow.md
 | `chathandoff status --root DIRECTORY` | List projects |
 | `chathandoff validate --root DIRECTORY` | Basic structure and secret-pattern checks |
 | `chathandoff sync --root DIRECTORY [--remote origin] [--branch main] [--dry-run]` | Explicit safe Git push |
+| `chathandoff drive {auth,init,connect,push,pull,status}` | Optional Google Drive v0.2 storage |
 
 `--root` defaults to the current directory. Checkpoint supports `--expected-state-sha256` for a caller that wants to reject changes if the state file differs from the version it last read.
 
@@ -131,7 +150,7 @@ The checkpoint updates a **marked managed block** in `CURRENT_STATE.md` and appe
 - You, or an AI assistant with access to your chat, must **review and provide** a correct checkpoint. The CLI cannot inspect arbitrary ChatGPT histories.
 - A private GitHub repository is **not** a secret vault. Basic regex scanning catches some obvious token patterns but cannot identify every secret or confidential detail. Review your diff before any push, especially to public repositories.
 - Updating several files is not a distributed transaction. Concurrent editors should use the SHA precondition, Git review and manual reconciliation. Git divergence is refused rather than overwritten.
-- GitHub is supported via a normal Git remote; there is no independent GitHub REST provider in v0.1. Google Drive support is **planned**.
+- GitHub is supported via a normal Git remote; there is no independent GitHub REST provider in v0.2. Google Drive support is **experimental** with mocked integration tests, not live account verification.
 - The tool does not verify whether your written project facts are true; it maintains documents that a human must substantiate.
 - Retention, authentication, backups, and GitHub account security remain your responsibility.
 
@@ -155,7 +174,7 @@ python -m pip install -e . pytest
 python -m pytest -q
 ```
 
-CI workflow is configured for Python 3.10–3.13, but CI must run on GitHub before its status can be claimed. Tests cover local initialization, checkpoints, history preservation, opt-in concurrency guard, basic secret detection, manual Git staging, pushing to a local bare repository and rejection of divergent history.
+CI tests are configured for Python 3.10–3.13. The v0.2 CI result must be verified after its new commit. Tests cover local initialization, checkpoints, history preservation, opt-in concurrency guard, basic secret detection, manual Git staging, pushing to a local bare repository and rejection of divergent history.
 
 ## Author
 

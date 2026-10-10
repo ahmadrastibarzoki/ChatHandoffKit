@@ -44,3 +44,17 @@ stateDiagram-v2
 ## Next architecture milestone
 
 Introduce a minimal provider protocol (create/read/write/verify/history) and a tested Google Drive adapter using least-privilege OAuth scopes. Add concurrency policies, explicit conflict visualization and backup/rollback behavior. See [roadmap](roadmap.md).
+
+## Experimental Google Drive adapter — v0.2
+
+`src/chathandoffkit/drive_backend.py` is an optional module. Installed-app OAuth (`drive.file`) creates an app-owned private folder. A local ignored `.chathandoff/drive.json` persists its folder ID and per-document SHA-256 last-transfer baseline. `drive push` and `drive pull` are explicit and compare both sides before writing. No automatic deletions or GitHub↔Drive two-way synchronization. CI exercises a fake Drive API rather than live OAuth.
+
+```mermaid
+flowchart LR
+    M[Portable Markdown Memory] --> C[Explicit CLI checkpoint]
+    C --> G[Git remote / GitHub]
+    M --> A[Experimental Drive adapter]
+    O[User-granted OAuth drive.file] --> A
+    A --> D[App-owned Drive folder]
+    A --> S[Local baseline & conflict checks]
+```

@@ -14,3 +14,11 @@ dist/
 *.pem
 .DS_Store
 *.tmp
+
+# Never track OAuth credentials or workspace Drive connection state
+.chathandoff/
+*client_secret*.json
+*client_secrets*.json
+credentials.json
+token.json
+google-drive-token.json

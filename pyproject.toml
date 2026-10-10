@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "chathandoffkit"
-version = "0.1.0"
+version = "0.2.0"
 description = "Local-first, Git-versioned project memory for long-running AI conversations"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -22,6 +22,9 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Documentation",
 ]
+
+[project.optional-dependencies]
+drive = ["google-api-python-client>=2.100,<3", "google-auth>=2.20,<3", "google-auth-oauthlib>=1.0,<2"]
 
 [project.scripts]
 chathandoff = "chathandoffkit.cli:main"

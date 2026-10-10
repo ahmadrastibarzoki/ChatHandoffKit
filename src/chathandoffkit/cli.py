@@ -56,12 +56,56 @@ def build_parser() -> argparse.ArgumentParser:
     sync.add_argument("--remote", default="origin")
     sync.add_argument("--branch", default="main")
     sync.add_argument("--dry-run", action="store_true")
+    drive = sub.add_parser("drive", help="Optional OAuth-based Google Drive Markdown storage")
+    action = drive.add_subparsers(dest="drive_action", required=True)
+    auth = action.add_parser("auth", help="Authorize with a desktop OAuth client JSON")
+    auth.add_argument("--client-secrets", required=True, type=Path)
+    auth.add_argument("--token-file", type=Path)
+    setup = action.add_parser("init", help="Create a new app-owned Drive folder")
+    setup.add_argument("--root", type=Path, default=Path("."))
+    setup.add_argument("--name", default="ChatHandoffKit Memory")
+    setup.add_argument("--token-file", type=Path)
+    bind = action.add_parser("connect", help="Bind an existing app-accessible Drive folder ID")
+    bind.add_argument("--root", type=Path, default=Path("."))
+    bind.add_argument("--folder-id", required=True)
+    for act in ("push", "pull", "status"):
+        cmd = action.add_parser(act, help=f"Drive {act}; no implicit deletes")
+        cmd.add_argument("--root", type=Path, default=Path("."))
+        cmd.add_argument("--token-file", type=Path)
+        if act != "status":
+            cmd.add_argument("--dry-run", action="store_true")
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
+        if args.command == "drive":
+            from .drive_backend import (
+                DEFAULT_TOKEN, DriveStore, authorize, connection, connect,
+                init_remote, live_service, transfer,
+            )
+            token_file = args.token_file or DEFAULT_TOKEN if hasattr(args, "token_file") else DEFAULT_TOKEN
+            if args.drive_action == "auth":
+                authorize(args.client_secrets, token_file)
+                print("Google Drive OAuth token saved locally (never commit it).")
+                return 0
+            if args.drive_action == "connect":
+                connect(args.root, args.folder_id)
+                print("Drive folder connected (no data transferred):", args.folder_id)
+                return 0
+            if args.drive_action == "status":
+                print("Connected Drive folder:", connection(args.root)["folder_id"])
+                return 0
+            store = DriveStore(live_service(token_file))
+            if args.drive_action == "init":
+                print("Created app-owned Drive folder:", init_remote(args.root, store, args.name))
+                return 0
+            plan = transfer(args.root, store, args.drive_action, dry_run=args.dry_run)
+            print("Drive", args.drive_action, "preview" if args.dry_run else "complete")
+            print("Changed:", ", ".join(plan.changed) or "none")
+            print("Unchanged:", len(plan.unchanged))
+            return 0
         if args.command == "init":
             created = init_workspace(args.root)
             print("Workspace initialized. New files:", ", ".join(created) or "none")
@@ -113,6 +157,13 @@ def main(argv: list[str] | None = None) -> int:
             return 0
     except (HandoffError, OSError, ValueError) as error:
         print("ERROR:", error, file=sys.stderr)
+        return 2
+    except Exception as error:
+        if args.command != "drive":
+            raise
+        # OAuth/Google API request failures should not print a stack trace containing
+        # sensitive local configuration. Never include credential values in errors.
+        print("ERROR: Google Drive operation failed:", type(error).__name__, file=sys.stderr)
         return 2
     return 2
 
