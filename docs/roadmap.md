@@ -8,7 +8,8 @@
 - [x] Optional Drive v3 API integration with desktop OAuth using scoped `drive.file`.
 - [x] Explicit Drive folder setup, Markdown push/pull, SHA-256 baseline conflict refusals and dry run.
 - [x] Offline fake Drive API tests for upload, restore, divergence and duplicate safety.
-- [ ] Real-account OAuth acceptance test (user must connect their Google Cloud OAuth app).
+- [x] Add local OAuth configuration/scope doctor and optional read-only API/folder smoke test, with offline CI fixtures (2026-11-14).
+- [ ] Real-account OAuth acceptance test (user must connect their Google Cloud OAuth app; see docs/drive-oauth-acceptance.md).
 - [ ] Concurrency-safe write preconditions / transactions; current conflict detection is best effort.
 
 ## Later

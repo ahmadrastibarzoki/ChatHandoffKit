@@ -68,6 +68,12 @@ def build_parser() -> argparse.ArgumentParser:
     bind = action.add_parser("connect", help="Bind an existing app-accessible Drive folder ID")
     bind.add_argument("--root", type=Path, default=Path("."))
     bind.add_argument("--folder-id", required=True)
+    doctor = action.add_parser("doctor", help="Check OAuth configuration and optionally test read-only Drive API access")
+    doctor.add_argument("--client-secrets", type=Path, help="Local Desktop OAuth client JSON; not uploaded")
+    doctor.add_argument("--token-file", type=Path, help="Optional locally saved OAuth token path")
+    doctor.add_argument("--root", type=Path, default=Path("."), help="Workspace for optional folder check")
+    doctor.add_argument("--online", action="store_true", help="Read-only Google Drive API authentication smoke test")
+    doctor.add_argument("--check-folder", action="store_true", help="With --online, verify connected folder metadata")
     for act in ("push", "pull", "status"):
         cmd = action.add_parser(act, help=f"Drive {act}; no implicit deletes")
         cmd.add_argument("--root", type=Path, default=Path("."))
@@ -86,6 +92,15 @@ def main(argv: list[str] | None = None) -> int:
                 init_remote, live_service, transfer,
             )
             token_file = args.token_file or DEFAULT_TOKEN if hasattr(args, "token_file") else DEFAULT_TOKEN
+            if args.drive_action == "doctor":
+                from .drive_doctor import diagnose
+                report = diagnose(
+                    client_secrets=args.client_secrets, token_file=token_file,
+                    online=args.online, check_folder=args.check_folder, root=args.root,
+                )
+                for name, status in report.items():
+                    print(f"{name}: {status}")
+                return 0
             if args.drive_action == "auth":
                 authorize(args.client_secrets, token_file)
                 print("Google Drive OAuth token saved locally (never commit it).")

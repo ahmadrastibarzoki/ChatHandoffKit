@@ -12,6 +12,12 @@
 
 Use Google's official [Python quickstart](https://developers.google.com/workspace/drive/api/quickstart/python) for consent screen and desktop client setup. Review [Drive scopes](https://developers.google.com/workspace/drive/api/guides/api-specific-auth). The tool requests **only** `https://www.googleapis.com/auth/drive.file`, allowing it to work with files it creates or those explicitly opened/authorized for that OAuth app.
 
+## OAuth diagnostics (v0.2 acceptance helper)
+
+Before authorization, run chathandoff drive doctor --client-secrets YOUR_PRIVATE_DESKTOP_JSON to check the local Desktop OAuth configuration. This **does not** sign in or contact Google. After the normal browser-based chathandoff drive auth, run chathandoff drive doctor --online to test the limited drive.file OAuth token with a read-only Drive API call. When a workspace is connected, chathandoff drive doctor --root YOUR_WORKSPACE --online --check-folder also verifies only folder metadata. It does not upload or download Markdown, nor prove the full push/pull flow. An expired token may be refreshed and saved locally. Do not send client JSON or tokens in chat.
+
+Follow the [human-run real-account acceptance checklist](drive-oauth-acceptance.md); all real-account checks remain NOT RUN until completed on the operator's own computer.
+
 ## Single-machine walkthrough
 
 **Keep downloaded OAuth client JSON OUTSIDE the public repository.** Do not paste the JSON into chats or issues.
@@ -60,6 +66,8 @@ The `drive.file` scope does not give access to all Drive files: the folder must 
 ## Troubleshooting
 
 - `Drive dependencies missing`: run `pip install -e ".[drive]"` in your active environment.
+- Doctor fails on token permissions (POSIX): restrict access to its owner (chmod 600); do not share the token file.
+- Doctor reports NOT_CHECKED: this is expected in offline mode, not proof of a valid OAuth connection.
 - Consent/client error: enable Drive API, ensure Desktop OAuth client, correct test users and scopes.
 - OAuth token expired: run `chathandoff drive auth --client-secrets <local-json>` again.
 - `Remote changed` / `Local changed`: do not force. Compare and reconcile contents manually.
