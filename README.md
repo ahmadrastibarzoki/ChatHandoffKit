@@ -25,6 +25,7 @@ Long conversations can become difficult to navigate. A fresh AI chat may not hav
 | Git commits + explicit push | **Implemented, tested against local bare Git remote** | Use your own configured GitHub remote and credentials |
 | GitHub-specific API adapter | **Not implemented** | Standard Git transport is supported instead |
 | Google Drive Markdown adapter | **Implemented; offline API tests passed; live OAuth pending** | Optional desktop OAuth, app-owned folders, explicit push/pull, optimistic hash baseline |
+| OAuth diagnostics | **Implemented; offline-tested; real account pending** | drive doctor checks local configuration/scopes and optionally read-only API/folder access |
 | Automated extraction of entire chats | **Not implemented** | Assistant/user must provide verified facts |
 | MCP / visual UI / semantic search | **Planned** | Not advertised as working |
 
@@ -105,7 +106,7 @@ The app requests the per-file `drive.file` scope. The default token resides in y
 | `chathandoff status --root DIRECTORY` | List projects |
 | `chathandoff validate --root DIRECTORY` | Basic structure and secret-pattern checks |
 | `chathandoff sync --root DIRECTORY [--remote origin] [--branch main] [--dry-run]` | Explicit safe Git push |
-| `chathandoff drive {auth,init,connect,push,pull,status}` | Optional Google Drive v0.2 storage |
+| `chathandoff drive {auth,init,connect,push,pull,status,doctor}` | Optional Google Drive v0.2 storage and read-only OAuth diagnostics |
 
 `--root` defaults to the current directory. Checkpoint supports `--expected-state-sha256` for a caller that wants to reject changes if the state file differs from the version it last read.
 
@@ -153,6 +154,8 @@ The checkpoint updates a **marked managed block** in `CURRENT_STATE.md` and appe
 - GitHub is supported via a normal Git remote; there is no independent GitHub REST provider in v0.2. Google Drive support is **experimental** with mocked integration tests, not live account verification.
 - The tool does not verify whether your written project facts are true; it maintains documents that a human must substantiate.
 - Retention, authentication, backups, and GitHub account security remain your responsibility.
+
+For a privacy-preserving preflight, run chathandoff drive doctor --client-secrets YOUR_PRIVATE_CLIENT_JSON. After consenting in your own browser, run chathandoff drive doctor --online; optional --check-folder validates a configured app-owned folder. A green offline check **does not** mean live OAuth has passed. See the [operator-run OAuth acceptance checklist](docs/drive-oauth-acceptance.md).
 
 See [Security Policy](SECURITY.md) and [Architecture](docs/architecture.md).
 
